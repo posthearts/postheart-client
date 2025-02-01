@@ -1,0 +1,97 @@
+#letter-view {
+  display: flex;
+  flex-direction: column;
+  /* grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr 64px;
+    grid-template-areas: "customizer" "papers" "navigator"; */
+  gap: 21px;
+  max-height: calc(100vh - 16px);
+
+  &.editing {
+    .customizer {
+      opacity: 0;
+    }
+  }
+
+  .customizer {
+    /* grid-area: customizer; */
+    flex-basis: 64px;
+    min-height: 64px;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+
+  .papers {
+    /* grid-area: papers; */
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 12.5% 75% 12.5%;
+    align-items: center;
+
+    .hedge {
+      height: 50px;
+    }
+
+    .main-paper-holder {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .navigator {
+    flex-basis: 64px;
+    min-height: 64px;
+    /* grid-area: navigator; */
+  }
+
+  .paper.postheart-animate {
+    .paper-text {
+      /* transition: padding 0.2s; */
+      .letter-input-p {
+        font-size: calc(13.9 * var(--su));
+        letter-spacing: calc(0.17 * var(--su));
+        line-height: calc(var(--line) * var(--su));
+        /* transition: line-height 0.2s; */
+
+        &:empty::before {
+          content: "";
+          display: inline-block;
+        }
+      }
+    }
+
+    .addon-wrapper {
+      top: calc(var(--top) * var(--su));
+      left: calc(var(--left) * var(--su));
+      width: calc(var(--width) * var(--su));
+      height: calc(var(--height) * var(--su));
+      position: absolute;
+
+      .add-on {
+        transform-origin: center;
+        rotate: var(--rotate);
+        width: 100%;
+        height: 100%;
+
+        /* &.animate-in { */
+        scale: 0;
+        animation: add-on-enter 0.2s forwards;
+        animation-delay: calc(var(--index) * 0.1s);
+        /* } */
+      }
+    }
+  }
+}
+
+/* animations */
+@keyframes add-on-enter {
+  0% {
+    scale: 0;
+  }
+
+  100% {
+    scale: 1;
+  }
+}

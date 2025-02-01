@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Gloria+Hallelujah&family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+
+  <title>PostHearts</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <template id="wire-frame-el-template">
+    <div id="wire-frame-el" data-editing="false" style="display: none; user-select: none;"
+      class="wireframe border-2 border-solid border-button-accent absolute top-[50%] left-[50%] w-10 h-10 z-10 group">
+      <div data-action="move" class="absolute inset-0 cursor-move"></div>
+      <div data-action="resize" data-resize-origin="top-left" data-action-active="false"
+        class="top-left-resize rounded-sm w-3 h-3  absolute left-0 top-0 cursor-grab active:cursor-grabbing border-2 border-solid border-button-accent bg-backgrounds-hover_clicked group-[.fully-editable]:block hidden"
+        style="transform: translate(-50%, -50%)"></div>
+      <div data-action="resize" data-resize-origin="top-right" data-action-active="false"
+        class="top-right-resize rounded-sm w-3 h-3  absolute right-0 top-0 cursor-grab active:cursor-grabbing border-2 border-solid border-button-accent bg-backgrounds-hover_clicked group-[.fully-editable]:block hidden"
+        style="transform: translate(50%, -50%);"></div>
+      <div data-action="resize" data-resize-origin="bottom-left" data-action-active="false"
+        class="bottom-left-resize rounded-sm w-3 h-3  absolute bottom-0 left-0 cursor-grab active:cursor-grabbing border-2 border-solid border-button-accent bg-backgrounds-hover_clicked group-[.fully-editable]:block hidden"
+        style="transform: translate(-50%, 50%);"></div>
+      <div data-action="resize" data-resize-origin="bottom-right" data-action-active="false"
+        class="bottom-right-resize rounded-sm w-3 h-3  absolute bottom-0 right-0 cursor-grab active:cursor-grabbing border-2 border-solid border-button-accent bg-backgrounds-hover_clicked group-[.fully-editable]:block hidden"
+        style="transform: translate(50%, 50%)"></div>
+
+      <div style="transform: translate(-50%, calc(100% + 6px)); box-shadow: 0px 2px 2px 0px hsla(0, 0%, 3%, 0.03);
+" data-action="rotate"
+        class="bg-backgrounds-on-canvas rounded-full w-5 h-5 items-center justify-center absolute bottom-0 left-[50%] shadow-x-small group-[.fully-editable]:flex hidden cursor-grab active:cursor-grabbing">
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M4.02148 8.5C4.66205 9.11795 5.54481 9.5 6.50006 9.5C8.43306 9.5 10.0001 7.933 10.0001 6C10.0001 5.72385 10.2239 5.5 10.5001 5.5C10.7762 5.5 11.0001 5.72385 11.0001 6C11.0001 8.4853 8.98536 10.5 6.50006 10.5C5.36181 10.5 4.30396 10.0768 3.5 9.3779V10C3.5 10.2761 3.27614 10.5 3 10.5C2.72385 10.5 2.5 10.2761 2.5 10V8.25C2.5 7.8358 2.83578 7.5 3.25 7.5H4.875C5.15114 7.5 5.375 7.72385 5.375 8C5.375 8.27615 5.15114 8.5 4.875 8.5H4.02148Z"
+            fill="black" />
+          <path
+            d="M3 6C3 6.27615 2.77614 6.5 2.5 6.5C2.22386 6.5 2 6.27615 2 6C2 3.51472 4.01472 1.5 6.5 1.5C7.641 1.5 8.7012 1.92518 9.50585 2.62715V2C9.50585 1.72386 9.7297 1.5 10.0058 1.5C10.282 1.5 10.5058 1.72386 10.5058 2V3.75C10.5058 4.16422 10.17 4.5 9.75585 4.5H8.00585C7.7297 4.5 7.50585 4.27614 7.50585 4C7.50585 3.72386 7.7297 3.5 8.00585 3.5H8.9786C8.338 2.88207 7.45525 2.5 6.5 2.5C4.56701 2.5 3 4.06701 3 6Z"
+            fill="black" />
+        </svg>
+      </div>
+
+      <div style="transform: translate(-50%, calc(-100% - 6px)); box-shadow: 0px 2px 2px 0px hsla(0, 0%, 3%, 0.03);
+;" data-action="delete"
+        class="bg-backgrounds-on-canvas rounded-full w-5 h-5 items-center justify-center absolute top-0 left-[50%] shadow-x-small group-[.fully-editable]:flex hidden cursor-pointer">
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M4.11459 2.5H2.25C1.97386 2.5 1.75 2.72386 1.75 3C1.75 3.27614 1.97386 3.5 2.25 3.5H2.51606L2.96907 10.0688C3.00523 10.5932 3.44112 11 3.96671 11H9.0333C9.5589 11 9.99475 10.5932 10.0309 10.0688L10.4839 3.5H10.75C11.0261 3.5 11.25 3.27614 11.25 3C11.25 2.72386 11.0261 2.5 10.75 2.5H8.8854C8.56675 1.48573 7.61975 0.75 6.5 0.75C5.38026 0.75 4.43327 1.48573 4.11459 2.5ZM5.20052 2.5H7.7995C7.54005 2.05165 7.05495 1.75 6.5 1.75C5.94505 1.75 5.45995 2.05165 5.20052 2.5ZM5.5 5C5.77615 5 6 5.22385 6 5.5V8C6 8.27615 5.77615 8.5 5.5 8.5C5.22386 8.5 5 8.27615 5 8V5.5C5 5.22385 5.22386 5 5.5 5ZM7.5 5C7.77615 5 8 5.22385 8 5.5V8C8 8.27615 7.77615 8.5 7.5 8.5C7.22385 8.5 7 8.27615 7 8V5.5C7 5.22385 7.22385 5 7.5 5Z"
+            fill="#070707" />
+        </svg>
+
+      </div>
+    </div>
+
+  </template>
+
+  <!-- styling for wire frame el -->
+  <style>
+    [data-action="resize"][data-action-active="true"] {
+      @apply bg-button-accent
+    }
+  </style>
+
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

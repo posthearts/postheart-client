@@ -1,0 +1,27 @@
+@import './assets/css/typography.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased; /* Smooth the edges of the text */
+  -moz-osx-font-smoothing: grayscale; /* Use grayscale text smoothing for macOS */
+  text-rendering: optimizeLegibility; /* Improves text readability for larger font sizes */
+  font-smooth: always; /* Smooth text rendering (non-standard, works in some browsers) */
+  font-synthesis: none;
+}
+
+body {
+  @apply bg-backgrounds-canvas font-sans text-text-default h-screen w-screen;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  overscroll-behavior: contain;
+  max-height: 100vh;
+  max-width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}

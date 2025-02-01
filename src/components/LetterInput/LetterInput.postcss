@@ -1,0 +1,18 @@
+.tiptap {
+  &:focus-within {
+    outline: none;
+  }
+
+  p.is-editor-empty:first-child::before {
+    color: var(--gray-4);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    @apply text-text-tertiary font-normal text-sm leading-[21px] tracking-tight;
+  }
+
+  .letter-input-p {
+    @apply text-text-default text-sm leading-[21px] tracking-tight font-normal;
+  }
+}
