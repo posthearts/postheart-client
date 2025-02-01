@@ -17,20 +17,12 @@ const possibleRotations = ['-0.5deg', '1deg', '-1deg', '0.5deg']
 export default function LetterView() {
     const { currentLetter } = useLetters();
     const [paperRotation, setPaperRotation] = useState(0);
-    const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
     useEffect(() => {
         setPaperRotation((lastValue) => {
             return (lastValue + 1) % possibleRotations.length;
         })
     }, [currentLetter?.frameColor.colorString]);
-
-    useEffect(() => {
-        const profilePic = localStorage.getItem('profile_picture');
-        if (profilePic) {
-            setProfilePicture(profilePic);
-        }
-    }, []);
 
     function onClick() {
     }
@@ -55,7 +47,6 @@ export default function LetterView() {
                     </span>
                 </Button>
                 <Customization />
-                {profilePicture && <img src={profilePicture} alt="Profile" className="w-12 h-12 rounded-full" />}
             </div>
             <div className="papers" id="letter-view-papers" style={{ '--su': `${paperWidth / A4_DIMENSIONS_X}px`, '--su-number': `${paperWidth / A4_DIMENSIONS_X}` } as React.CSSProperties}>
                 <div className="hedge"></div>
