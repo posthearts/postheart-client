@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, useContext, useEffect } from 'react';
+import React, { createContext, useState, ReactNode, useContext } from 'react';
 
 interface User {
   token: string;
@@ -15,25 +15,6 @@ export const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const profile_picture = localStorage.getItem('profile_picture');
-    const name = localStorage.getItem('name');
-    const tokenExpiry = localStorage.getItem('tokenExpiry');
-
-    if (token && profile_picture && name && tokenExpiry) {
-      const expiryDate = new Date(tokenExpiry);
-      if (expiryDate > new Date()) {
-        setUser({ token, profile_picture, name });
-      } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('profile_picture');
-        localStorage.removeItem('name');
-        localStorage.removeItem('tokenExpiry');
-      }
-    }
-  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
