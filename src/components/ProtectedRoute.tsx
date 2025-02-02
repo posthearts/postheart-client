@@ -1,15 +1,15 @@
-import React, { useContext } from 'react';
 import { Navigate } from 'react-router';
-import { UserContext } from '../context/UserContext';
+import { useUser } from '../context/UserContext';
 
-const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
-    const { user } = useContext(UserContext) ?? { user: null };
+import { ReactNode } from 'react';
 
-    if (!user) {
+export default function ProtectedRoute({ children }: { children: ReactNode }) {
+    const userContext = useUser();
+    const user = userContext ? userContext.user : null;
+
+    if (!user || !user.token) {
         return <Navigate to="/auth" />;
     }
 
     return children;
-};
-
-export default ProtectedRoute;
+}
