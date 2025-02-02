@@ -21,5 +21,5 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
         return <Navigate to="/auth" />;
     }
 
-    return children;
+    return <>{children}</>;
 }
