@@ -26,46 +26,18 @@ export default function AuthPage() {
         const profile_picture = urlParams.get('profile_picture');
 
         if (token && name && profile_picture) {
-            // Validate the token with the server
-            fetch('https://posthearts.vercel.app/api/validate-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.valid) {
-                        const tokenExpiry = new Date();
-                        tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Set token expiry to 1 hour
-                        setUser({ token, name, profile_picture });
-                        localStorage.setItem('token', token);
-                        localStorage.setItem('name', name);
-                        localStorage.setItem('profile_picture', profile_picture);
-                        localStorage.setItem('tokenExpiry', tokenExpiry.toISOString());
-                        if (isMobile) {
-                            setShowMobileError(true);
-                        } else {
-                            navigate('/letter');
-                        }
-                    } else {
-                        // Clear localStorage if the token is invalid
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('name');
-                        localStorage.removeItem('profile_picture');
-                        localStorage.removeItem('tokenExpiry');
-                        navigate('/auth');
-                    }
-                })
-                .catch(() => {
-                    // Handle error
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('name');
-                    localStorage.removeItem('profile_picture');
-                    localStorage.removeItem('tokenExpiry');
-                    navigate('/auth');
-                });
+            const tokenExpiry = new Date();
+            tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Set token expiry to 1 hour
+            setUser({ token, name, profile_picture });
+            localStorage.setItem('token', token);
+            localStorage.setItem('name', name);
+            localStorage.setItem('profile_picture', profile_picture);
+            localStorage.setItem('tokenExpiry', tokenExpiry.toISOString());
+            if (isMobile) {
+                setShowMobileError(true);
+            } else {
+                navigate('/letter');
+            }
         } else {
             // Clear localStorage if no token is provided
             localStorage.removeItem('token');
