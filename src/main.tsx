@@ -6,12 +6,11 @@ import AuthPage from './pages/AuthPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { UserProvider } from './context/UserContext';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/letter',
-    element: <ProtectedRoute><Editor /></ProtectedRoute>,
+    element: <Editor />,
     errorElement: <NotFoundPage />,
   },
   {
@@ -22,8 +21,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
- <UserProvider>
-        <RouterProvider router={router} />
-      </UserProvider>
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   </StrictMode>,
 );
