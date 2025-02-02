@@ -26,15 +26,41 @@ export default function AuthPage() {
         const profile_picture = urlParams.get('profile_picture');
 
         if (token && name && profile_picture) {
-            setUser({ token, name, profile_picture });
-            localStorage.setItem('token', token);
-            localStorage.setItem('name', name);
-            localStorage.setItem('profile_picture', profile_picture);
-            if (isMobile) {
-                setShowMobileError(true);
-            } else {
-                navigate('/letter');
-            }
+            // Validate the token with the server
+            fetch('https://posthearts.vercel.app/api/validate-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        setUser({ token, name, profile_picture });
+                        localStorage.setItem('token', token);
+                        localStorage.setItem('name', name);
+                        localStorage.setItem('profile_picture', profile_picture);
+                        if (isMobile) {
+                            setShowMobileError(true);
+                        } else {
+                            navigate('/letter');
+                        }
+                    } else {
+                        // Clear localStorage if the token is invalid
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('name');
+                        localStorage.removeItem('profile_picture');
+                        navigate('/auth');
+                    }
+                })
+                .catch(() => {
+                    // Handle error
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('name');
+                    localStorage.removeItem('profile_picture');
+                    navigate('/auth');
+                });
         }
     }, [setUser, navigate, isMobile]);
 
