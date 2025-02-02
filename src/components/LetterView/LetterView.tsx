@@ -27,6 +27,11 @@ export default function LetterView() {
     function onClick() {
     }
 
+    function handleLogout() {
+        localStorage.removeItem('token');
+        window.location.reload();
+    }
+
     const [ref, bounds] = useMeasure();
     const paperWidth = useMemo(() => {
         const paper = select('#posthearts-paper');
@@ -47,6 +52,9 @@ export default function LetterView() {
                     </span>
                 </Button>
                 <Customization />
+                <Button onClick={handleLogout} className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center shadow-small text-white">
+                    Logout
+                </Button>
             </div>
             <div className="papers" id="letter-view-papers" style={{ '--su': `${paperWidth / A4_DIMENSIONS_X}px`, '--su-number': `${paperWidth / A4_DIMENSIONS_X}` } as React.CSSProperties}>
                 <div className="hedge"></div>
