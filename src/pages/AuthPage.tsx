@@ -37,10 +37,13 @@ export default function AuthPage() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.valid) {
+                        const tokenExpiry = new Date();
+                        tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Set token expiry to 1 hour
                         setUser({ token, name, profile_picture });
                         localStorage.setItem('token', token);
                         localStorage.setItem('name', name);
                         localStorage.setItem('profile_picture', profile_picture);
+                        localStorage.setItem('tokenExpiry', tokenExpiry.toISOString());
                         if (isMobile) {
                             setShowMobileError(true);
                         } else {
@@ -51,6 +54,7 @@ export default function AuthPage() {
                         localStorage.removeItem('token');
                         localStorage.removeItem('name');
                         localStorage.removeItem('profile_picture');
+                        localStorage.removeItem('tokenExpiry');
                         navigate('/auth');
                     }
                 })
@@ -59,8 +63,15 @@ export default function AuthPage() {
                     localStorage.removeItem('token');
                     localStorage.removeItem('name');
                     localStorage.removeItem('profile_picture');
+                    localStorage.removeItem('tokenExpiry');
                     navigate('/auth');
                 });
+        } else {
+            // Clear localStorage if no token is provided
+            localStorage.removeItem('token');
+            localStorage.removeItem('name');
+            localStorage.removeItem('profile_picture');
+            localStorage.removeItem('tokenExpiry');
         }
     }, [setUser, navigate, isMobile]);
 

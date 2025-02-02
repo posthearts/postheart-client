@@ -20,8 +20,18 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const token = localStorage.getItem('token');
     const profile_picture = localStorage.getItem('profile_picture');
     const name = localStorage.getItem('name');
-    if (token && profile_picture && name) {
-      setUser({ token, profile_picture, name });
+    const tokenExpiry = localStorage.getItem('tokenExpiry');
+
+    if (token && profile_picture && name && tokenExpiry) {
+      const expiryDate = new Date(tokenExpiry);
+      if (expiryDate > new Date()) {
+        setUser({ token, profile_picture, name });
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('profile_picture');
+        localStorage.removeItem('name');
+        localStorage.removeItem('tokenExpiry');
+      }
     }
   }, []);
 
