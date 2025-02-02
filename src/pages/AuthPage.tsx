@@ -22,8 +22,10 @@ export default function AuthPage() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
+        const name = urlParams.get('name');
+        const profile_picture = urlParams.get('profile_picture');
 
-        if (token) {
+        if (token && name && profile_picture) {
             // Validate the token with the server
             fetch('https://posthearts.vercel.app/api/validate-token', {
                 method: 'POST',
@@ -37,7 +39,11 @@ export default function AuthPage() {
                     if (data.valid) {
                         const tokenExpiry = new Date();
                         tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Set token expiry to 1 hour
-                        setUser({ token, name: data.name, profile_picture: data.profile_picture });
+                        setUser({ token, name, profile_picture });
+                        localStorage.setItem('token', token);
+                        localStorage.setItem('name', name);
+                        localStorage.setItem('profile_picture', profile_picture);
+                        localStorage.setItem('tokenExpiry', tokenExpiry.toISOString());
                         if (isMobile) {
                             setShowMobileError(true);
                         } else {
