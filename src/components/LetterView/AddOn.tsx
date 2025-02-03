@@ -1,8 +1,8 @@
 import React, { CSSProperties, useEffect } from "react";
-import useSticker from "../AddOns/useSticker"
+import useSticker, { StickerType } from "../AddOns/useSticker"
 import { EditableAddOnManager, type EditAddOnType, type SingleAddOn } from "./addOnUtils";
 import { useLetters } from "@/context/lettersContext";
-import useEmoji from "../AddOns/useEmoji";
+import useEmoji, { EmojiType } from "../AddOns/useEmoji";
 
 interface AddOnProps {
     addOn: SingleAddOn;
@@ -27,7 +27,7 @@ const AddOn = ({ addOn, className, style }: AddOnProps) => {
 
     if (addOn.type === 'sticker') {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { SvgIcon } = useSticker(addOn.name);
+        const { SvgIcon } = useSticker(addOn.name as StickerType);
         return <div
             style={{
                 '--top': addOn.position.y,
@@ -52,7 +52,7 @@ const AddOn = ({ addOn, className, style }: AddOnProps) => {
 
     } else if (addOn.type === 'emoji') {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { imageUrl } = useEmoji(addOn.name);
+        const { imageUrl } = useEmoji(addOn.name as EmojiType);
         return <div
             style={{
                 '--top': addOn.position.y,
