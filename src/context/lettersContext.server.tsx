@@ -21,7 +21,13 @@ import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from 
 // API functions
 async function fetchLetters(): Promise<LetterType[]> {
     const response = await fetch(`${BASE_URL}/letters`);
-    return response.json();
+    if (!response.ok) {
+        console.error('Failed to fetch letters:', response.statusText);
+        throw new Error('Failed to fetch letters');
+    }
+    const data = await response.json();
+    console.log('Fetched letters:', data);
+    return data;
 }
 
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
