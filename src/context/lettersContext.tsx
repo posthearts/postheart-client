@@ -11,159 +11,125 @@ import {
 import { type LetterType, Letter } from "@/components/LetterView/letter";
 import { AddOnType } from "@/components/LetterView/addOnUtils";
 import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchLetters, createServerLetter, updateServerLetter, deleteServerLetter } from './lettersContext.server';
 
 function useLettersProvider() {
-    const queryClient = useQueryClient();
+    const [letters, setLetters] = useState<LetterType[]>(getLettersFromStorage);
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
+    // Flag to prevent double creation on initial load
     const initialLoad = useRef(true);
 
-    // Fetch letters from server
-    const { data: letters = [], refetch } = useQuery<LetterType[]>({
-        queryKey: ['letters'],
-        queryFn: fetchLetters,
-        initialData: getLettersFromStorage() // Fallback to local storage
-    });
-
-    // Mutations
-    const { mutate: createLetterMutation } = useMutation({
-        mutationFn: createServerLetter,
-        onSuccess: (serverLetter) => {
-            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
-                old ? [...old, serverLetter] : [serverLetter]
-            );
-            saveLettersToStorage([...letters, serverLetter]);
-            refetch();
-        }
-    });
-
-    const { mutate: updateLetterMutation } = useMutation({
-        mutationFn: ({ id, updatedData }: { id: string; updatedData: Partial<LetterType> }) =>
-            updateServerLetter(id, updatedData),
-        onMutate: async (variables) => {
-            await queryClient.cancelQueries({ queryKey: ['letters'] });
-            const previousLetters = queryClient.getQueryData<LetterType[]>(['letters']);
-
-            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
-                old?.map(letter =>
-                    letter.id === variables.id
-                        ? { ...letter, ...variables.updatedData, updatedAt: new Date().toISOString() }
-                        : letter
-                )
-            );
-
-            return { previousLetters };
-        },
-        onError: (_err, _variables, context) => {
-            queryClient.setQueryData(['letters'], context?.previousLetters);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['letters'] });
-        }
-    });
-
-    const { mutate: deleteLetterMutation } = useMutation({
-        mutationFn: deleteServerLetter,
-        onSuccess: (_, id: string) => {
-            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
-                old?.filter(letter => letter.id !== id)
-            );
-            saveLettersToStorage(letters.filter(letter => letter.id !== id));
-            refetch();
-        }
-    });
-
-    // Derived state
-    const currentLetter = useMemo(() =>
-        letters.find((letter) => letter.id === currentLetterId) || null,
-        [letters, currentLetterId]
-    );
-
-    const groupedLetters = useMemo(() => groupLettersByDate(letters), [letters]);
-
-    // Initial load logic
     useEffect(() => {
-        if (!initialLoad.current || letters.length === 0) return;
+        saveLettersToStorage(letters);
+    }, [letters]);
 
+    const createLetter = useCallback(() => {
+        const newLetter = new Letter();
+        setLetters((prev) => [...prev, newLetter]);
+        setCurrentLetterId(newLetter.id); // Set newly created letter as the current letter
+    }, []);
+
+    useEffect(() => {
+        if (!initialLoad.current) return;
         if (letters.length === 0 && !currentLetterId) {
-            handleCreateLetter();
+            createLetter(); // Create a letter if none exist
         } else if (!currentLetterId && letters.length > 0) {
-            const lastEditedLetter = letters.reduce((last, current) =>
-                new Date(last.updatedAt ?? 0).getTime() > new Date(current.updatedAt ?? 0).getTime()
-                    ? last
-                    : current
-            );
-            setCurrentLetterId(lastEditedLetter.id);
+            // Find the last edited letter
+            const lastEditedLetter = letters.reduce((last, current) => {
+                const lastDate = new Date(last.updatedAt ?? 0).getTime();
+                const currentDate = new Date(current.updatedAt ?? 0).getTime();
+                return currentDate > lastDate ? current : last;
+            }, letters[0]);
+
+            if (lastEditedLetter) {
+                setCurrentLetterId(lastEditedLetter.id);
+            }
         }
 
         initialLoad.current = false;
+    }, [letters, currentLetterId, createLetter, setCurrentLetterId]); // Correct dependencies
+
+    const updateLetter = useCallback(
+        (id: LetterType['id'], updatedData: Partial<Omit<LetterType, "id" | "createdAt">>) => {
+            setLetters((prev) =>
+                prev.map((letter) =>
+                    letter.id === id
+                        ? { ...letter, ...updatedData, updatedAt: new Date().toISOString() }
+                        : letter
+                )
+            );
+        },
+        []
+    );
+
+    const updateAddOn = useCallback(
+        (letterId: string, addonId: string, addonData: Partial<Omit<AddOnType, 'id' | 'name'>>) => {
+            setLetters((prev) =>
+                prev.map((letter) =>
+                    letter.id === letterId
+                        ? {
+                            ...letter,
+                            addOns: letter.addOns?.map((addon) =>
+                                addon.id === addonId ? { ...addon, ...addonData } : addon
+                            ),
+                            updatedAt: new Date().toISOString(),
+                        }
+                        : letter
+                )
+            );
+        },
+        []
+    );
+
+    const deleteLetter = useCallback((id: string) => {
+        setLetters((prev) => prev.filter((letter) => letter.id !== id));
+    }, []);
+
+    const setCurrentLetter = useCallback((id: string) => {
+        setCurrentLetterId(id);
+    }, []);
+
+    const currentLetter = useMemo(() => {
+        return letters.find((letter) => letter.id === currentLetterId) || null;
     }, [letters, currentLetterId]);
 
-    // Letter actions
-    const handleCreateLetter = useCallback(() => {
-        const newLetter = new Letter();
-        createLetterMutation(newLetter);
-        setCurrentLetterId(newLetter.id);
-    }, [createLetterMutation]);
+    const deleteAddOn = useCallback((addOnID: AddOnType['id']) => {
+        setLetters((prevLetters) =>
+            prevLetters.map((letter) => {
+                if (letter.id !== currentLetterId) return letter; // Keep other letters unchanged
 
-    const handleUpdateLetter = useCallback(
-        (id: string, updatedData: Partial<Omit<LetterType, "id" | "createdAt">>) => {
-            updateLetterMutation({ id, updatedData });
-        },
-        [updateLetterMutation]
-    );
+                return {
+                    ...letter,
+                    addOns: letter.addOns?.filter((addOn) => addOn.id !== addOnID) || [],
+                    updatedAt: new Date().toISOString(),
+                };
+            })
+        );
+    }, [currentLetterId, setLetters]);
 
-    const handleDeleteLetter = useCallback((id: string) => {
-        deleteLetterMutation(id);
-        setCurrentLetterId(prev => prev === id ? null : prev);
-    }, [deleteLetterMutation]);
-
-    const handleUpdateAddOn = useCallback(
-        (letterId: string, addonId: string, addonData: Partial<Omit<AddOnType, 'id' | 'name'>>) => {
-            updateLetterMutation({
-                id: letterId,
-                updatedData: {
-                    addOns: letters.find(l => l.id === letterId)?.addOns?.map(addon =>
-                        addon.id === addonId ? { ...addon, ...addonData } : addon
-                    )
-                }
-            });
-        },
-        [letters, updateLetterMutation]
-    );
-
-    const handleDeleteAddOn = useCallback((addOnID: string) => {
-        if (!currentLetterId) return;
-
-        updateLetterMutation({
-            id: currentLetterId,
-            updatedData: {
-                addOns: letters.find(l => l.id === currentLetterId)?.addOns?.filter(a => a.id !== addOnID)
-            }
-        });
-    }, [currentLetterId, letters, updateLetterMutation]);
+    const groupedLetters = useMemo(() => groupLettersByDate(letters), [letters]);
 
     return {
         letters,
-        createLetter: handleCreateLetter,
-        updateLetter: handleUpdateLetter,
-        deleteLetter: handleDeleteLetter,
+        createLetter,
+        updateLetter,
+        deleteLetter,
         currentLetter,
-        setCurrentLetter: setCurrentLetterId,
+        setCurrentLetter,
         groupedLetters,
-        updateAddOn: handleUpdateAddOn,
-        deleteAddOn: handleDeleteAddOn
+
+        updateAddOn,
+        deleteAddOn,
     };
 }
 
-// Context setup
-const LettersContext = createContext<ReturnType<typeof useLettersProvider> | undefined>(undefined);
+const LettersContext = createContext<
+    ReturnType<typeof useLettersProvider> | undefined
+>(undefined);
 
 export function LettersProvider({ children }: { children: ReactNode }) {
-    const lettersContextValue = useLettersProvider();
+    const letterData = useLettersProvider();
     return (
-        <LettersContext.Provider value={lettersContextValue}>
+        <LettersContext.Provider value={letterData}>
             {children}
         </LettersContext.Provider>
     );

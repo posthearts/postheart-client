@@ -19,12 +19,12 @@ import { AddOnType } from "@/components/LetterView/addOnUtils";
 import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
 
 // API functions
-export async function fetchLetters(): Promise<LetterType[]> {
+async function fetchLetters(): Promise<LetterType[]> {
     const response = await fetch(`${BASE_URL}`);
     return response.json();
 }
 
-export async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
+async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
     const response = await fetch(`${BASE_URL}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +33,7 @@ export async function createServerLetter(newLetter: LetterType): Promise<LetterT
     return response.json();
 }
 
-export async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
+async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
     await fetch(`${BASE_URL}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -41,7 +41,7 @@ export async function updateServerLetter(id: string, updatedData: Partial<Letter
     });
 }
 
-export async function deleteServerLetter(id: string): Promise<void> {
+async function deleteServerLetter(id: string): Promise<void> {
     await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' });
 }
 
