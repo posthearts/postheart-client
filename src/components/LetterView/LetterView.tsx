@@ -5,7 +5,7 @@ import useMeasure from "react-use-measure";
 // import Collapse from "@/assets/svg/collapse.svg?react";
 // import Button from "../UI/SiteButton";
 import { useLetters } from "@/context/lettersContext";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { select } from "@/utils";
 import AddOn from "./AddOn";
 
@@ -24,19 +24,10 @@ export default function LetterView() {
         })
     }, [currentLetter?.frameColor.colorString]);
 
-    function onClick() {
-    }
+    // function onClick() {
+    // }
 
-    const [ref, bounds] = useMeasure();
-    const paperWidth = useMemo(() => {
-        const paper = select('#posthearts-paper');
-        if (paper) {
-            return paper.clientWidth;
-        } else {
-            return 0;
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ref, bounds]);
+    const [ref] = useMeasure();
 
     useEffect(() => {
         // remove stagger class after last add on has been animated in
