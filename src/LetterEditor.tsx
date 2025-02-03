@@ -8,8 +8,7 @@ const queryClient = new QueryClient();
 
 function Editor() {
   return <QueryClientProvider client={queryClient}>
-  <LettersProvider>
-  return <LettersProvider>
+<LettersProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-backgrounds-canvas">
       <NavBar />
       <div className="canvas grow grid grid-cols-[1fr_minmax(664px,_1fr)] items-end p-2 gap-4">
@@ -17,7 +16,6 @@ function Editor() {
         <LetterView />
       </div>
     </div>
-  </LettersProvider>
   </LettersProvider>
 </QueryClientProvider>
 }
