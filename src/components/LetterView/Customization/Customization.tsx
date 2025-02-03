@@ -8,8 +8,9 @@ import FontConfiguration from "./FontConfiguration";
 import { useFloating, offset, size } from "@floating-ui/react-dom";
 import Download from "./Download";
 import Share from "./Share";
+import Alignment from "./Alignment";
 
-export type Config = '' | 'fonts' | 'extra' | 'share' | 'color' | 'download';
+export type Config = '' | 'fonts' | 'extra' | 'share' | 'color' | 'download' | 'alignment';
 export type OnActivate = (config: Config) => void;
 export interface ConfigurationProps {
     activeConfig: Config;
@@ -58,6 +59,7 @@ export default function LetterConfiguration() {
                         <Customize />
                     </Button>
                     <ColorConfiguration onActivate={onActivate} activeConfig={activeConfig} />
+                    <Alignment onActivate={onActivate} activeConfig={activeConfig} />
                     <FontConfiguration onActivate={onActivate} activeConfig={activeConfig} />
                     <Share onActivate={onActivate} activeConfig={activeConfig} />
                     <Download activeConfig={activeConfig} onActivate={onActivate} />

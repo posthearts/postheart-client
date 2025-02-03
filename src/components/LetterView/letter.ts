@@ -6,6 +6,7 @@ export interface LetterType {
     title: string;
     frameColor: FrameColorType;
     content: string;
+    contentAlignment: ContentAlignmentType;
     paper: Paper;
     fontFamily: FontFamily;
     addOns?: SingleAddOn[];
@@ -14,10 +15,17 @@ export interface LetterType {
     updatedAt?: string;
 }
 
+export const alignments = ['top', 'center', 'bottom'] as const;
+export type ContentAlignmentType = (typeof alignments)[number];
+export function parseAlignmentToStyle(alignment: ContentAlignmentType) {
+    return alignment === 'center' ? 'center' : alignment === 'bottom' ? 'flex-end' : 'flex-start';
+
+}
 export class Letter implements LetterType {
     title = 'Untitled';
     frameColor = selectRandomly(frameColors);
     content = '';
+    contentAlignment: ContentAlignmentType = 'top';
     paper = selectRandomly(papers);
     fontFamily = selectRandomly(fontFamilies);
     addOns = [];
@@ -212,7 +220,21 @@ export function normalizeCssStyles(styles: Paper['cssStyles']) {
     return styles;
 }
 
-export const fontFamilies = ["DM Mono", "Instrument Serif", "Gloria Hallelujah"] as const;
+// export const fontFamilies = ["DM Mono", "Instrument Serif", "Gloria Hallelujah"] as const;
+export const fontFamilies = [
+    "DM Mono",
+    "Damion",
+    "Finger Paint",
+    "Geist",
+    "Gloria Hallelujah",
+    "Inria Serif",
+    "Instrument Serif",
+    "Inter",
+    "Mansalva",
+    "Marck Script",
+    "Marhey",
+    "Martian Mono"
+] as const;
 export type FontFamily = typeof fontFamilies[number];
 
 export const scaleAnimation = {

@@ -3,8 +3,9 @@ import { type ConfigurationProps } from "./Customization";
 import { motion } from "motion/react";
 import Confetti from "@/assets/svg/confetti.svg?react";
 import { offset, useFloating } from "@floating-ui/react-dom";
-import { useEffect } from "react";
+import { MouseEventHandler, useEffect, useRef } from "react";
 import { scaleAnimation } from "../letter";
+import { useOutsideClick } from "@/utils";
 
 export default function Share({ onActivate, activeConfig }: ConfigurationProps) {
     const { refs, floatingStyles, update } = useFloating({
@@ -18,10 +19,24 @@ export default function Share({ onActivate, activeConfig }: ConfigurationProps) 
 
     useEffect(() => {
         update();
-    }, [update, activeConfig])
+    }, [update, activeConfig]);
+
+    function toggleActivate() {
+        onActivate('share')
+    }
+
+    const ref = useRef<HTMLDivElement | null>(null);
+    useOutsideClick(ref, () => {
+        onActivate('share');
+    }, [activeConfig]);
+
+    function onShare(e: MouseEvent) {
+        e.stopPropagation();
+        toggleActivate();
+    }
 
     return <>
-        <Button ref={refs.setReference} onClick={() => onActivate('share')} className="h-8 rounded-full bg-backgrounds-default text-sm text-text-secondary px-3 flex items-center gap-1 font-medium opacity-50">
+        <Button ref={refs.setReference} onClick={onShare as unknown as MouseEventHandler} className="h-8 rounded-full bg-backgrounds-default text-sm text-text-secondary px-3 flex items-center gap-1 font-medium opacity-50">
             Share
         </Button>
 
@@ -31,6 +46,7 @@ export default function Share({ onActivate, activeConfig }: ConfigurationProps) 
             {
                 activeConfig === 'share' ?
                     <motion.div
+                        ref={ref}
                         {...scaleAnimation}
                         className="bg-text-default rounded-xl px-4 py-2 flex gap-2"
                         style={{

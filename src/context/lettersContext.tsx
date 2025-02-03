@@ -30,7 +30,6 @@ function useLettersProvider() {
 
     useEffect(() => {
         if (!initialLoad.current) return;
-
         if (letters.length === 0 && !currentLetterId) {
             createLetter(); // Create a letter if none exist
         } else if (!currentLetterId && letters.length > 0) {
