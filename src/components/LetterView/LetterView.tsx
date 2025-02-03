@@ -46,36 +46,24 @@ export default function LetterView() {
 
             // uses set timeout to let the animation finish smoothly
             setTimeout(() => {
-                container?.classList.remove('stagger');
+                if (container) {
+                    container.classList.remove('stagger');
+                }
             }, 500);
         })
     })
 
     return (
         <div id="letter-view" className="w-full h-full rounded-3xl" style={{ backgroundColor: currentLetter?.frameColor.colorString, transition: backgroundColorTransition, overflow: 'clip' }}>
-            <div className="customizer flex items-center justify-between px-4 pt-4 relative z-50">
-                <Button onClick={onClick} className="h-12 w-12 rounded-full bg-button-neutral flex items-center justify-center shadow-small">
-                    <span className="w-8 h-8 flex items-center justify-center bg-backgrounds-default rounded-full">
-                        <Collapse />
-                    </span>
-                </Button>
-                <Customization />
-            </div>
-            <div className="papers" id="letter-view-papers" style={{ '--su': `${paperWidth / A4_DIMENSIONS_X}px`, '--su-number': `${paperWidth / A4_DIMENSIONS_X}` } as React.CSSProperties}>
-                <div className="hedge"></div>
-                <div className="main-paper-holder flex items-center justify-center">
-                    <div id={containerId} className={`postheart-animate paper h-full bg-cover relative stagger`} style={{ aspectRatio: `${A4_DIMENSIONS_X}/${A4_DIMENSIONS_Y}` }} ref={ref}>
-                        <div id={`${containerId}-content`} className="h-full bg-cover relative" style={{ backgroundImage: `url(/textures/${currentLetter?.paper.texture}.png)`, ...normalizeCssStyles(currentLetter?.paper?.cssStyles), borderRadius: `calc(${currentLetter?.paper.customStyle.radius} * var(--su))`, rotate: possibleRotations[paperRotation], transition: 'rotate 0.4s' } as React.CSSProperties}>
-                            <div className="absolute inset-0 paper-text" style={{ paddingTop: `calc(${currentLetter?.paper.customStyle.padding.top} * var(--su))`, paddingBottom: `calc(${currentLetter?.paper.customStyle.padding.bottom} * var(--su))`, paddingLeft: `calc(${currentLetter?.paper.customStyle.padding.left} * var(--su))`, paddingRight: `calc(${currentLetter?.paper.customStyle.padding.right} * var(--su))`, fontFamily: currentLetter?.fontFamily, '--line': `${currentLetter?.paper.customStyle.lineHeight}` } as React.CSSProperties} dangerouslySetInnerHTML={{ __html: currentLetter?.content || '' }}>
-                            </div>
-                            {currentLetter?.addOns?.map((addOn, i) => {
-                                return <AddOn className="letter-view-add-on" addOn={addOn} key={addOn.id} style={{ '--index': String(i) } as React.CSSProperties} />
-                            })}
-                        </div>
+            <div ref={ref} id={containerId} className="relative w-full h-full stagger">
+                <div className="absolute w-full h-full" style={{ transform: `rotate(${possibleRotations[paperRotation]})` }}>
+                    <div id="posthearts-paper" className="relative w-full h-full" style={normalizeCssStyles(currentLetter?.paper.cssStyles)}>
+                        {currentLetter?.addOns?.map((addOn) => (
+                            <AddOn key={addOn.id} addOn={addOn} />
+                        ))}
                     </div>
                 </div>
             </div>
-            <div className="navigator"></div>
         </div>
     );
 }

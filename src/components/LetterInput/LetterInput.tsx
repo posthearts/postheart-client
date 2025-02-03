@@ -47,18 +47,18 @@ export default function LetterInput() {
         content: currentLetter?.content || '',
         onUpdate: ({ editor }) => {
             if (currentLetter) {
-                updateLetter(currentLetter.id, { content: editor.getHTML(), title: truncateString(editor?.getText(),) });
+                updateLetter(currentLetter.id, { content: editor.getHTML(), title: truncateString(editor?.getText(), 50) });
             }
         },
     });
 
     useEffect(() => {
-        if (editor?.isEmpty && currentLetter) {
+        if (editor && currentLetter) {
             editor.commands.setContent(currentLetter.content);
         }
-    }, [currentLetter?.id])
+    }, [currentLetter?.id, editor]);
 
-    const toggleIsEpanded = () => {
+    const toggleIsExpanded = () => {
         setIsExpanded((oldValue) => !oldValue);
     };
 
@@ -98,7 +98,7 @@ export default function LetterInput() {
                 </div>
 
                 <SiteButton
-                    onClick={toggleIsEpanded}
+                    onClick={toggleIsExpanded}
                     className="w-8 h-8 rounded-full bg-backgrounds-on-canvas flex items-center justify-center"
                 >
                     {isExpanded ? <Collapse /> : <Expand />}
@@ -121,17 +121,14 @@ export default function LetterInput() {
                 className={`${isExpanded ? 'grow' : ''} mt-2 p-4 bg-backgrounds-on-canvas border border-backgrounds-on-canvas focus-within:border-border-input-active cursor-text overflow-hidden shadow-x-small`}
             >
                 <motion.div ref={ref}>
-                    <motion.div layout className="w-7 h-7 rounded-full bg-candy-gradient"></motion.div>
-                    {editor && (
-                        <MotionEditorContent
-                            layout
-                            transition={{
-                                duration: 0
-                            }}
-                            editor={editor}
-                            className="mt-4"
-                            placeholder="Write a letter" />
-                    )}
+                    <MotionEditorContent
+                        layout
+                        transition={{
+                            duration: 0
+                        }}
+                        editor={editor}
+                        className="mt-4"
+                        placeholder="Write a letter" />
                 </motion.div>
             </motion.div>
 
@@ -162,7 +159,7 @@ export default function LetterInput() {
                         <span>{MAX_LETTER_LENGTH}</span>
                     </span>
                 </div>
-
+                        
                 <SiteButton
                     onClick={() => editor?.commands.clearContent()}
                     className="h-7 flex items-center px-3 text-text-secondary rounded-full bg-backgrounds-on-canvas font-medium text-sm tracking-tight"
