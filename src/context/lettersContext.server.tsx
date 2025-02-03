@@ -20,7 +20,7 @@ import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from 
 
 // Utility function to get the auth token
 function getAuthToken() {
-    return localStorage.token('authToken');
+    return localStorage.getItem('token');
 }
 
 // API functions
