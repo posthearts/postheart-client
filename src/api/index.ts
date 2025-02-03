@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://posthearts.vercel.app/api/letters';
+export const BASE_URL = 'https://posthearts.vercel.app/api';
