@@ -18,9 +18,18 @@ import { type LetterType, Letter } from "@/components/LetterView/letter";
 import { AddOnType } from "@/components/LetterView/addOnUtils";
 import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
 
+// Utility function to get the auth token
+function getAuthToken() {
+    return localStorage.getItem('authToken');
+}
+
 // API functions
 async function fetchLetters(): Promise<LetterType[]> {
-    const response = await fetch(`${BASE_URL}/letters`);
+    const response = await fetch(`${BASE_URL}/letters`, {
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+        }
+    });
     if (!response.ok) {
         console.error('Failed to fetch letters:', response.statusText);
         throw new Error('Failed to fetch letters');
@@ -33,7 +42,10 @@ async function fetchLetters(): Promise<LetterType[]> {
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
     const response = await fetch(`${BASE_URL}/letters`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
         body: JSON.stringify(newLetter)
     });
     return response.json();
@@ -42,13 +54,21 @@ async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
 async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
     await fetch(`${BASE_URL}/letters/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
         body: JSON.stringify(updatedData)
     });
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
-    await fetch(`${BASE_URL}/letters/${id}`, { method: 'DELETE' });
+    await fetch(`${BASE_URL}/letters/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+        }
+    });
 }
 
 function useLettersProvider() {
@@ -117,7 +137,7 @@ function useLettersProvider() {
 
     // Initial load logic
     useEffect(() => {
-        if (!initialLoad.current) return;
+        if (!initialLoad.current || letters.length === 0) return;
 
         if (letters.length === 0 && !currentLetterId) {
             handleCreateLetter();
