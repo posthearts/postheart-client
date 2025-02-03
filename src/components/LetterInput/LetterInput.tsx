@@ -162,7 +162,7 @@ export default function LetterInput() {
                         <span>{MAX_LETTER_LENGTH}</span>
                     </span>
                 </div>
-                        
+
                 <SiteButton
                     onClick={() => editor?.commands.clearContent()}
                     className="h-7 flex items-center px-3 text-text-secondary rounded-full bg-backgrounds-on-canvas font-medium text-sm tracking-tight"

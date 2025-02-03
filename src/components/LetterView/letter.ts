@@ -1,6 +1,6 @@
 import { type CSSProperties } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { AddOnType } from "./addOnUtils";
+import { SingleAddOn } from "./addOnUtils";
 
 export interface LetterType {
     title: string;
@@ -8,7 +8,7 @@ export interface LetterType {
     content: string;
     paper: Paper;
     fontFamily: FontFamily;
-    addOns?: AddOnType[];
+    addOns?: SingleAddOn[];
     id: string;
     createdAt: string;
     updatedAt?: string;
@@ -33,7 +33,6 @@ export const frameColors = [
     { colorString: 'hsla(20, 89%, 54%, 1)', h: 20, s: 89, l: 54 },
     { colorString: 'hsla(47, 99%, 62%, 1)', h: 47, s: 99, l: 62 },
     { colorString: 'hsla(30, 100%, 29%, 1)', h: 30, s: 100, l: 29 },
-    { colorString: 'hsla(0, 0%, 83%, 1)', h: 0, s: 0, l: 83 },
     { colorString: 'hsla(0, 0%, 83%, 1)', h: 0, s: 0, l: 83 },
     { colorString: 'hsla(155, 41%, 42%, 1)', h: 155, s: 41, l: 42 },
     { colorString: 'hsla(207, 93%, 50%, 1)', h: 207, s: 93, l: 50 },

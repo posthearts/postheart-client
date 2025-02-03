@@ -1,19 +1,19 @@
 import Button from "@/components/UI/SiteButton";
 import Customize from "@/assets/svg/customize.svg?react";
 // import Download from "@/assets/svg/download.svg?react";
-import Link from "@/assets/svg/link.svg?react";
 import { MouseEventHandler, useEffect, useState } from "react";
 import Extra from "./Extra";
 import ColorConfiguration from "./ColorConfiguration";
 import FontConfiguration from "./FontConfiguration";
 import { useFloating, offset, size } from "@floating-ui/react-dom";
 import Download from "./Download";
+import Share from "./Share";
 
 export type Config = '' | 'fonts' | 'extra' | 'share' | 'color' | 'download';
-export type onActivate = (config: Config) => void;
+export type OnActivate = (config: Config) => void;
 export interface ConfigurationProps {
     activeConfig: Config;
-    onActivate: onActivate
+    onActivate: OnActivate
 }
 export default function LetterConfiguration() {
     const [activeConfig, setActiveConfig] = useState<Config>('');
@@ -59,10 +59,7 @@ export default function LetterConfiguration() {
                     </Button>
                     <ColorConfiguration onActivate={onActivate} activeConfig={activeConfig} />
                     <FontConfiguration onActivate={onActivate} activeConfig={activeConfig} />
-                    <Button onClick={() => onActivate('')} className="h-8 rounded-full bg-backgrounds-default text-sm text-text-secondary px-3 flex items-center gap-1 font-medium">
-                        Share
-                        <Link />
-                    </Button>
+                    <Share onActivate={onActivate} activeConfig={activeConfig} />
                     <Download activeConfig={activeConfig} onActivate={onActivate} />
                 </div>
 

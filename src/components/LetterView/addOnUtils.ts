@@ -1,25 +1,34 @@
 import { v4 as uuidv4 } from "uuid";
-import { StickerType } from "../SvgAssets/useSticker";
+import { StickerType } from "../AddOns/useSticker";
 import { LetterType, containerId, selectRandomly } from "./letter";
 import { select, getCssProperty, getNumberFromPx, isNumber, getTemplate, selectFrom, selectAllFrom, getNumberFromUnit, noop } from "@/utils";
 import { CSSProperties } from "react";
+import { EmojiType } from "../AddOns/useEmoji";
 
 type AddOnSize = {
     width: number;
     height: number;
 }
 
-export interface AddOnType {
-    name: StickerType;
+export type AddOnTypeBase = {
     id: string;
     position: Vector2;
-
-    // width and height to be added the first time it enters the dom
-    size?: AddOnSize;
+    size?: AddOnSize;  // Width and height to be added when it enters the DOM
     rotation?: number;
-    type: 'sticker' | 'emoji';
     letterId: LetterType['id'];
-}
+};
+
+type StickerAddOn = AddOnTypeBase & {
+    name: StickerType;
+    type: 'sticker';
+};
+
+type EmojiAddOn = AddOnTypeBase & {
+    name: EmojiType;
+    type: 'emoji';
+};
+
+export type AddOnType = StickerAddOn | EmojiAddOn;
 export type Vector2Type = { x: number, y: number };
 class Vector2 implements Vector2Type {
     x: number;
@@ -30,10 +39,10 @@ class Vector2 implements Vector2Type {
         this.y = y;
     }
 }
-export class SingleAddOn implements AddOnType {
+export class SingleAddOn implements AddOnTypeBase {
     id;
-    name;
-    type;
+    name: AddOnType['name'];
+    type: AddOnType['type'];
     letterId: string;
     position = selectRandomly([
         { x: -22.630675836930457, y: 623.2240437170263 },
@@ -43,6 +52,8 @@ export class SingleAddOn implements AddOnType {
         { x: 168.0213534532374, y: 218.86984462829736 },
         { x: 182.19104637889689, y: 573.7188603117506 },
     ]);
+    size?: AddOnSize | undefined;
+    rotation?: number | undefined;
 
     constructor({ name = 'bff', letterId = 'unknown', type = 'sticker' }: Partial<AddOnType>) {
         this.id = uuidv4();
@@ -61,11 +72,11 @@ type BoundaryFromType = {
 export type EditAddOnType = (value: Partial<AddOnType>) => void;
 export type DeleteAddOnType = (id: AddOnType['id']) => void;
 export class EditableAddOnManager {
-    addOn: AddOnType;
+    addOn: SingleAddOn;
     editAddOn: EditAddOnType;
     deleteAddOn: DeleteAddOnType;
     addOnWrapperEl: HTMLDivElement;
-    addOnEl: SVGElement;
+    addOnEl: SVGElement | HTMLImageElement;
     containerEl: HTMLElement;
     letterViewEl: HTMLElement;
     containerContentEl: HTMLElement;
@@ -109,7 +120,7 @@ export class EditableAddOnManager {
 
     renderingWireFrame: boolean = false;
 
-    constructor(addOn: AddOnType, editAddOn: EditAddOnType, deleteAddOn: DeleteAddOnType) {
+    constructor(addOn: SingleAddOn, editAddOn: EditAddOnType, deleteAddOn: DeleteAddOnType) {
         this.addOn = addOn;
         this.editAddOn = editAddOn;
         this.deleteAddOn = deleteAddOn;
@@ -165,10 +176,19 @@ export class EditableAddOnManager {
 
     _registerDimensions() {
         if (!isNumber(this.addOn.size?.height) || !isNumber(this.addOn.size?.width)) {
-            const svgHeight = Number(this.addOnEl.getAttribute('height'));
-            const svgWidth = Number(this.addOnEl.getAttribute('width'));
-            this.aspectRatio = { height: svgHeight, width: svgWidth };
-            this.editAddOn({ size: { height: svgHeight, width: svgWidth } });
+            if (this.addOnEl instanceof SVGElement) {
+                const svgHeight = Number(this.addOnEl.getAttribute('height'));
+                const svgWidth = Number(this.addOnEl.getAttribute('width'));
+                console.log(svgHeight, svgWidth);
+                this.aspectRatio = { height: svgHeight, width: svgWidth };
+                this.editAddOn({ size: { height: svgHeight, width: svgWidth } });
+            } else if (this.addOnEl instanceof HTMLImageElement) {
+                if (!this.addOnEl.complete) this.addOnEl.onload = this._registerDimensions;
+                const addonHeight = this.addOnEl.naturalHeight / 2;
+                const addonWidth = this.addOnEl.naturalWidth / 2;
+                this.aspectRatio = { height: addonHeight, width: addonWidth };
+                this.editAddOn({ size: { height: addonHeight, width: addonWidth } })
+            }
         } else {
             this.aspectRatio = { ...this.addOn.size };
         }

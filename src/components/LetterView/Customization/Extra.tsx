@@ -2,18 +2,21 @@ import { scaleAnimation } from "../letter";
 import { motion } from "motion/react";
 import Button from "@/components/UI/SiteButton";
 import { paperTypes, type PaperType, papersMap } from "../letter";
-import { type StickerType, stickerTypes } from "@/components/SvgAssets/useSticker";
+import { type StickerType, stickerTypes } from "@/components/AddOns/useSticker";
 import Checkbox from "@/assets/svg/checkbox.svg?react";
 import React, { useRef, useState } from "react";
-import useSticker from "@/components/SvgAssets/useSticker";
+import useSticker from "@/components/AddOns/useSticker";
 import { useLetters } from "@/context/lettersContext";
 import { SingleAddOn } from "../addOnUtils";
-import { Config, type onActivate } from "./Customization";
+import { Config, type OnActivate } from "./Customization";
 import { useOutsideClick } from "@/utils";
+import useEmoji, { EmojiType, emojiNames } from "@/components/AddOns/useEmoji";
+import "./Extra.postcss";
 
 const extraFilters = [
     'All',
     'Backgrounds',
+    'Emojis',
     'Stickers'
 ] as const;
 type ExtraFilter = typeof extraFilters[number];
@@ -24,7 +27,7 @@ type ExtraChildProps = {
 }
 type ToggleFilterType = (filter: ExtraFilter) => void;
 interface ExtraProps {
-    onActivate: onActivate;
+    onActivate: OnActivate;
     activeConfig: Config
 }
 export default function Extra({ onActivate, activeConfig }: ExtraProps) {
@@ -44,22 +47,24 @@ export default function Extra({ onActivate, activeConfig }: ExtraProps) {
     const ref = useRef<HTMLDivElement | null>(null);
     useOutsideClick(ref, () => {
         onActivate('extra');
-    }, [activeConfig] )
+    }, [activeConfig])
 
     return <motion.div
-    ref={ref}
+        ref={ref}
         layout
+        id="extra-customization"
         {...scaleAnimation}
         transition={{
             duration: 0.4,
             type: 'spring',
-            bounce: 0.3
+            bounce: 0.2
         }}
         style={{
             borderRadius: 24,
-            transformOrigin: '0% 0%'
+            transformOrigin: '0% 0%',
+            maxHeight: 'clamp(0px, calc(100vh - 98px), 800px)'
         }}
-        className="customize w-full p-5 bg-backgrounds-on-canvas border border-border-default shadow-standard max-h-[700px] overflow-scroll">
+        className="customize w-full p-5 bg-backgrounds-on-canvas border border-border-default shadow-standard overflow-scroll">
         <motion.div layout>
             <ul className="flex items-center gap-2">
                 {extraFilters.map((filter) => {
@@ -73,18 +78,25 @@ export default function Extra({ onActivate, activeConfig }: ExtraProps) {
                 })}
             </ul>
         </motion.div>
+        
         <motion.div
             layout
         >
             {
                 currentFilter === 'Backgrounds' || currentFilter === 'All'
-                    ? <Backgrounds index={0} toggleFilter={toggleFilter} currentLetter={currentLetter} updateLetter={updateLetter} currentFilter={currentFilter} className="mt-10" />
+                    ? <Backgrounds key="backgrounds-all" index={0} toggleFilter={toggleFilter} currentLetter={currentLetter} updateLetter={updateLetter} currentFilter={currentFilter} className="mt-10" />
+                    : null
+            }
+
+            {
+                currentFilter === 'Emojis' || currentFilter === 'All'
+                    ? <EmojiOptions index={1} toggleFilter={toggleFilter} currentLetter={currentLetter} updateLetter={updateLetter} currentFilter={currentFilter} onActivate={onActivate} className="mt-10" />
                     : null
             }
 
             {
                 currentFilter === 'Stickers' || currentFilter === 'All'
-                    ? <StickerOptions index={1} toggleFilter={toggleFilter} onActivate={onActivate} currentFilter={currentFilter} updateLetter={updateLetter} currentLetter={currentLetter} className="mt-10" />
+                    ? <StickerOptions index={2} toggleFilter={toggleFilter} onActivate={onActivate} currentFilter={currentFilter} updateLetter={updateLetter} currentLetter={currentLetter} className="mt-10" />
                     : null
             }
         </motion.div>
@@ -109,24 +121,18 @@ function ExtraRow<Item>({ filterID, beta = false, items, itemSlot, currentFilter
     const itemsToShow = isActive || overrideLimit ? items : items.slice(0, 4);
     return (<motion.div
         key={currentFilter}
-        initial={{
-            opacity: 0,
-        }}
-        animate={{
-            opacity: 1,
-            transition: {
-                duration: 0.2,
-                delay: isActive ? 0 : index * 0.15
-            }
-        }}
         layout
         transition={
             {
                 duration: 0,
             }
         }
-        className={className}>
-        <div className="flex items-start justify-between">
+        style={{
+            '--parent-index': isActive ? '0' : String(index),
+        } as React.CSSProperties}
+        className={`${className} customization-extra-row`}>
+        <div
+            className="flex items-start justify-between">
             <h5 className="font-semibold text-base tracking-[0.2px] leading-[21px] text-text-secondary flex items-center gap-2">
                 {filterID}
                 {
@@ -140,9 +146,9 @@ function ExtraRow<Item>({ filterID, beta = false, items, itemSlot, currentFilter
             </h5>
             {
                 canShowMore ?
-                    <button 
-                    onClick={() => toggleFilter(filterID)}
-                    className="text-text-tertiary text-xs tracking-tight leading-[18px] font-medium">
+                    <button
+                        onClick={() => toggleFilter(filterID)}
+                        className="text-text-tertiary text-xs tracking-tight leading-[18px] font-medium">
                         {`Show all (${items.length - 4})`}
                     </button>
                     : null
@@ -166,11 +172,14 @@ function Backgrounds({ currentFilter, className, currentLetter, updateLetter, to
             updateLetter(currentLetter.id, { paper: papersMap[background] })
         }
     }
-    const SingleItem = (paperType: PaperType) => {
+    const SingleItem = (paperType: PaperType, i: number) => {
         return <Button
+            style={{
+                '--item-index': String(i),
+            } as React.CSSProperties}
             key={paperType}
             onClick={() => setLetterBackground(paperType)} className="flex flex-col items-center justify-center">
-            <div className="bg-backgrounds-default rounded-lg flex items-center justify-center w-full aspect-square relative">
+            <div className="bg-backgrounds-default rounded-lg flex items-center justify-center w-full aspect-square relative extra-row-item">
                 <div
                     style={{
                         boxShadow: `
@@ -216,7 +225,7 @@ function Backgrounds({ currentFilter, className, currentLetter, updateLetter, to
 }
 
 type StickerOptionsProps = ExtraChildProps & ExtraRowParentProps & {
-    onActivate: onActivate;
+    onActivate: OnActivate;
 };
 function StickerOptions({ currentFilter, className = '', currentLetter, updateLetter, onActivate, toggleFilter, index }: StickerOptionsProps) {
 
@@ -228,15 +237,19 @@ function StickerOptions({ currentFilter, className = '', currentLetter, updateLe
             } else {
                 updateLetter(currentLetter.id, { addOns: [newSticker] })
             }
+
             onActivate('extra');
         }
     }
 
-    const SingleStickerItem = (sticker: StickerType) => {
+    const SingleStickerItem = (sticker: StickerType, i: number) => {
         const { SvgIcon } = useSticker(sticker);
         return <div
             key={sticker}
-            className="w-full h-full flex items-center justify-center"
+            className="w-full h-full flex items-center justify-center extra-row-item"
+            style={{
+                '--item-index': String(i)
+            } as React.CSSProperties}
         >
             <Button
                 onClick={() => addSticker(sticker)}>
@@ -261,5 +274,50 @@ function StickerOptions({ currentFilter, className = '', currentLetter, updateLe
         items={[...stickerTypes]}
         itemSlot={SingleStickerItem}
         toggleFilter={toggleFilter}
+    />
+}
+
+type EmojiOptionsProps = ExtraChildProps & ExtraRowParentProps & {
+    onActivate: OnActivate
+}
+function EmojiOptions({ currentFilter, currentLetter, index, toggleFilter, updateLetter, className, onActivate }: EmojiOptionsProps) {
+    function addEmoji(emoji: EmojiType) {
+        if (currentLetter) {
+            const newEmoji = new SingleAddOn({ name: emoji, type: 'emoji', letterId: currentLetter.id });
+            if (Array.isArray(currentLetter.addOns)) {
+                updateLetter(currentLetter.id, { addOns: [...currentLetter.addOns, newEmoji] })
+            } else {
+                updateLetter(currentLetter.id, { addOns: [newEmoji] })
+            }
+
+            onActivate('extra')
+        }
+    };
+
+    const SingleEmojiItem = (emoji: EmojiType, i: number) => {
+        const { imageUrl } = useEmoji(emoji);
+        return <div
+            key={emoji}
+            className="w-full h-full flex items-center justify-center extra-row-item"
+            style={{
+                '--item-index': String(i)
+            } as React.CSSProperties}
+        >
+            <Button
+                onClick={() => addEmoji(emoji)}
+            >
+                <img className="w-14 h-14" src={imageUrl} />
+            </Button>
+        </div>
+    }
+    return <ExtraRow<EmojiType>
+        index={index}
+        filterID="Emojis"
+        currentFilter={currentFilter}
+        beta={true}
+        items={[...emojiNames]}
+        itemSlot={SingleEmojiItem}
+        toggleFilter={toggleFilter}
+        className={className}
     />
 }

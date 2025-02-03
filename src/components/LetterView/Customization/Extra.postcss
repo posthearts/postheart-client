@@ -1,0 +1,17 @@
+#extra-customization .extra-row-item {
+  opacity: 0;
+  animation: customization-extra-row__fade-in-extra-row-item 0.2s forwards;
+  animation-delay: calc((var(--item-index) + var(--parent-index)) * 0.0025s);
+}
+
+@keyframes customization-extra-row__fade-in-extra-row-item {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}

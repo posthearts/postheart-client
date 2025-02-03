@@ -152,7 +152,7 @@ function Colors({ currentLetter, activeConfig, onActivate, setCurrentLetterColor
                 <motion.div
                     layout
                     className="flex items-center gap-2 h-12">
-                    {adjustedFrameColors.slice(8, 16).map((color, i) => {
+                    {adjustedFrameColors.slice(7, 16).map((color, i) => {
                         return <motion.div
                             key={color.colorString}
                             initial={{

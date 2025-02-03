@@ -1,10 +1,11 @@
 import React, { CSSProperties, useEffect } from "react";
-import useSticker from "../SvgAssets/useSticker"
-import { type AddOnType, EditableAddOnManager, type EditAddOnType } from "./addOnUtils";
+import useSticker from "../AddOns/useSticker"
+import { EditableAddOnManager, type EditAddOnType, type SingleAddOn } from "./addOnUtils";
 import { useLetters } from "@/context/lettersContext";
+import useEmoji from "../AddOns/useEmoji";
 
 interface AddOnProps {
-    addOn: AddOnType;
+    addOn: SingleAddOn;
     className?: string;
     style?: CSSProperties;
 }
@@ -49,9 +50,9 @@ const AddOn = ({ addOn, className, style }: AddOnProps) => {
                 } as React.CSSProperties} />
         </div>
 
-    } else {
+    } else if (addOn.type === 'emoji') {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { SvgIcon } = useSticker(addOn.name);
+        const { imageUrl } = useEmoji(addOn.name);
         return <div
             style={{
                 '--top': addOn.position.y,
@@ -60,9 +61,10 @@ const AddOn = ({ addOn, className, style }: AddOnProps) => {
                 '--height': addOn.size?.height,
             } as React.CSSProperties}
             className="addon-wrapper">
-            <SvgIcon
+            <img
+                src={imageUrl}
                 id={addOnId}
-                className={`${className} select-none active:cursor-grabbing cursor-grab add-on absolute z-10`} style={{
+                className={`${className} select-none active:cursor-grabbing cursor-grab add-on`} style={{
                     ...style,
                     filter:
                         `drop-shadow(2px 0.16px 20px hsla(0, 0%, 0%, 0.1)) 
