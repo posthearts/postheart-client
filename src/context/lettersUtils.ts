@@ -1,4 +1,4 @@
-import { LetterType } from "@/components/LetterView/letter";
+import { type LetterType } from "@/components/LetterView/letter";
 
 export const STORAGE_KEY = "letters";
 

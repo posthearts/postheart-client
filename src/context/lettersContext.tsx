@@ -8,52 +8,33 @@ import {
     useMemo,
     useRef
 } from "react";
-import axios from 'axios';
 import { type LetterType, Letter } from "@/components/LetterView/letter";
 import { AddOnType } from "@/components/LetterView/addOnUtils";
 import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
 
-const API_URL = 'https://posthearts.vercel.app/api/letters';
-
 function useLettersProvider() {
     const [letters, setLetters] = useState<LetterType[]>(getLettersFromStorage);
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
+    // Flag to prevent double creation on initial load
     const initialLoad = useRef(true);
-
-    useEffect(() => {
-        const fetchLetters = async () => {
-            try {
-                const response = await axios.get(API_URL);
-                setLetters(response.data);
-                saveLettersToStorage(response.data);
-            } catch (error) {
-                console.error('Error fetching letters:', error);
-            }
-        };
-        fetchLetters();
-    }, []);
 
     useEffect(() => {
         saveLettersToStorage(letters);
     }, [letters]);
 
-    const createLetter = useCallback(async () => {
-        try {
-            const newLetter = new Letter();
-            const response = await axios.post(API_URL, newLetter);
-            setLetters((prev) => [...prev, response.data]);
-            setCurrentLetterId(response.data.id);
-        } catch (error) {
-            console.error('Error creating letter:', error);
-        }
+    const createLetter = useCallback(() => {
+        const newLetter = new Letter();
+        setLetters((prev) => [...prev, newLetter]);
+        setCurrentLetterId(newLetter.id); // Set newly created letter as the current letter
     }, []);
 
     useEffect(() => {
         if (!initialLoad.current) return;
 
         if (letters.length === 0 && !currentLetterId) {
-            createLetter();
+            createLetter(); // Create a letter if none exist
         } else if (!currentLetterId && letters.length > 0) {
+            // Find the last edited letter
             const lastEditedLetter = letters.reduce((last, current) => {
                 const lastDate = new Date(last.updatedAt ?? 0).getTime();
                 const currentDate = new Date(current.updatedAt ?? 0).getTime();
@@ -66,48 +47,42 @@ function useLettersProvider() {
         }
 
         initialLoad.current = false;
-    }, [letters, currentLetterId, createLetter, setCurrentLetterId]);
+    }, [letters, currentLetterId, createLetter, setCurrentLetterId]); // Correct dependencies
 
     const updateLetter = useCallback(
-        async (id: LetterType['id'], updatedData: Partial<Omit<LetterType, "id" | "createdAt">>) => {
-            try {
-                const response = await axios.put(`${API_URL}/${id}`, updatedData);
-                setLetters((prev) =>
-                    prev.map((letter) =>
-                        letter.id === id ? { ...letter, ...response.data.letter } : letter
-                    )
-                );
-            } catch (error) {
-                console.error('Error updating letter:', error);
-            }
+        (id: LetterType['id'], updatedData: Partial<Omit<LetterType, "id" | "createdAt">>) => {
+            setLetters((prev) =>
+                prev.map((letter) =>
+                    letter.id === id
+                        ? { ...letter, ...updatedData, updatedAt: new Date().toISOString() }
+                        : letter
+                )
+            );
         },
         []
     );
 
     const updateAddOn = useCallback(
-        async (letterId: string, addonId: string, addonData: Partial<Omit<AddOnType, 'id' | 'name'>>) => {
-            try {
-                const letter = letters.find((letter) => letter.id === letterId);
-                if (letter) {
-                    const updatedAddOns = letter.addOns?.map((addon) =>
-                        addon.id === addonId ? { ...addon, ...addonData } : addon
-                    );
-                    await updateLetter(letterId, { addOns: updatedAddOns });
-                }
-            } catch (error) {
-                console.error('Error updating add-on:', error);
-            }
+        (letterId: string, addonId: string, addonData: Partial<Omit<AddOnType, 'id' | 'name'>>) => {
+            setLetters((prev) =>
+                prev.map((letter) =>
+                    letter.id === letterId
+                        ? {
+                            ...letter,
+                            addOns: letter.addOns?.map((addon) =>
+                                addon.id === addonId ? { ...addon, ...addonData } : addon
+                            ),
+                            updatedAt: new Date().toISOString(),
+                        }
+                        : letter
+                )
+            );
         },
-        [letters, updateLetter]
+        []
     );
 
-    const deleteLetter = useCallback(async (id: string) => {
-        try {
-            await axios.delete(`${API_URL}/${id}`);
-            setLetters((prev) => prev.filter((letter) => letter.id !== id));
-        } catch (error) {
-            console.error('Error deleting letter:', error);
-        }
+    const deleteLetter = useCallback((id: string) => {
+        setLetters((prev) => prev.filter((letter) => letter.id !== id));
     }, []);
 
     const setCurrentLetter = useCallback((id: string) => {
@@ -118,17 +93,19 @@ function useLettersProvider() {
         return letters.find((letter) => letter.id === currentLetterId) || null;
     }, [letters, currentLetterId]);
 
-    const deleteAddOn = useCallback(async (addOnID: AddOnType['id']) => {
-        try {
-            const letter = letters.find((letter) => letter.id === currentLetterId);
-            if (letter) {
-                const updatedAddOns = letter.addOns?.filter((addOn) => addOn.id !== addOnID) || [];
-                await updateLetter(currentLetterId!, { addOns: updatedAddOns });
-            }
-        } catch (error) {
-            console.error('Error deleting add-on:', error);
-        }
-    }, [currentLetterId, letters, updateLetter]);
+    const deleteAddOn = useCallback((addOnID: AddOnType['id']) => {
+        setLetters((prevLetters) =>
+            prevLetters.map((letter) => {
+                if (letter.id !== currentLetterId) return letter; // Keep other letters unchanged
+
+                return {
+                    ...letter,
+                    addOns: letter.addOns?.filter((addOn) => addOn.id !== addOnID) || [],
+                    updatedAt: new Date().toISOString(),
+                };
+            })
+        );
+    }, [currentLetterId, setLetters]);
 
     const groupedLetters = useMemo(() => groupLettersByDate(letters), [letters]);
 
@@ -140,6 +117,7 @@ function useLettersProvider() {
         currentLetter,
         setCurrentLetter,
         groupedLetters,
+
         updateAddOn,
         deleteAddOn,
     };
