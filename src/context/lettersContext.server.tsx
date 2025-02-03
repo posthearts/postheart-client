@@ -23,22 +23,6 @@ function getAuthToken() {
     return localStorage.getItem('token');
 }
 
-// API functions
-async function fetchLetters(): Promise<LetterType[]> {
-    const response = await fetch(`${BASE_URL}/letters`, {
-        headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
-        }
-    });
-    if (!response.ok) {
-        console.error('Failed to fetch letters:', response.statusText);
-        throw new Error('Failed to fetch letters');
-    }
-    const data = await response.json();
-    console.log('Fetched letters:', data);
-    return data;
-}
-
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
     const response = await fetch(`${BASE_URL}/letters`, {
         method: 'POST',
@@ -60,6 +44,22 @@ async function updateServerLetter(id: string, updatedData: Partial<LetterType>):
         },
         body: JSON.stringify(updatedData)
     });
+}
+
+// API functions
+async function fetchLetters(): Promise<LetterType[]> {
+    const response = await fetch(`${BASE_URL}/letters`, {
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+        }
+    });
+    if (!response.ok) {
+        console.error('Failed to fetch letters:', response.statusText);
+        throw new Error('Failed to fetch letters');
+    }
+    const data = await response.json();
+    console.log('Fetched letters:', data);
+    return data;
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
