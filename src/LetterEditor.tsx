@@ -13,8 +13,8 @@ function Editor() {
           <LetterView />
         </div>
       </div>
-    </LettersProvider>
-  );
+    </LettersProvider> 
+  ); 
 }
 
 export default Editor;

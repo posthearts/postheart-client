@@ -1,9 +1,9 @@
 import { backgroundColorTransition, normalizeCssStyles, containerId } from "./letter";
 import "./LetterView.postcss";
 import useMeasure from "react-use-measure";
-import Customization from "./Customization/Customization";
-import Collapse from "@/assets/svg/collapse.svg?react";
-import Button from "../UI/SiteButton";
+// import Customization from "./Customization/Customization";
+// import Collapse from "@/assets/svg/collapse.svg?react";
+// import Button from "../UI/SiteButton";
 import { useLetters } from "@/context/lettersContext";
 import React, { useEffect, useMemo, useState } from "react";
 import { select } from "@/utils";
