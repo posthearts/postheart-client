@@ -117,7 +117,7 @@ function useLettersProvider() {
 
     // Initial load logic
     useEffect(() => {
-        if (!initialLoad.current || letters.length === 0) return;
+        if (!initialLoad.current) return;
 
         if (letters.length === 0 && !currentLetterId) {
             handleCreateLetter();
