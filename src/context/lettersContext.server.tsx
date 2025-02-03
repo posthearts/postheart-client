@@ -20,12 +20,12 @@ import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from 
 
 // API functions
 async function fetchLetters(): Promise<LetterType[]> {
-    const response = await fetch(`${BASE_URL}`);
+    const response = await fetch(`${BASE_URL}/letters`);
     return response.json();
 }
 
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
-    const response = await fetch(`${BASE_URL}`, {
+    const response = await fetch(`${BASE_URL}/letters`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLetter)
@@ -34,7 +34,7 @@ async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
 }
 
 async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
-    await fetch(`${BASE_URL}/${id}`, {
+    await fetch(`${BASE_URL}/letters/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
@@ -42,13 +42,14 @@ async function updateServerLetter(id: string, updatedData: Partial<LetterType>):
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
-    await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' });
+    await fetch(`${BASE_URL}/letters/${id}`, { method: 'DELETE' });
 }
 
 function useLettersProvider() {
     const queryClient = useQueryClient();
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
     const initialLoad = useRef(true);
+    const autoSaveInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch letters from server
     const { data: letters = [] } = useQuery<LetterType[]>({
@@ -169,6 +170,24 @@ function useLettersProvider() {
             }
         });
     }, [currentLetterId, letters, updateLetterMutation]);
+
+    // Auto-save functionality
+    useEffect(() => {
+        if (currentLetterId) {
+            autoSaveInterval.current = setInterval(() => {
+                const currentLetter = letters.find(letter => letter.id === currentLetterId);
+                if (currentLetter) {
+                    handleUpdateLetter(currentLetter.id, currentLetter);
+                }
+            }, 5000); // Auto-save every 5 seconds
+        }
+
+        return () => {
+            if (autoSaveInterval.current) {
+                clearInterval(autoSaveInterval.current);
+            }
+        };
+    }, [currentLetterId, letters, handleUpdateLetter]);
 
     return {
         letters,
