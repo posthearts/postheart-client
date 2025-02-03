@@ -85,7 +85,7 @@ function useLettersProvider() {
 
             return { previousLetters };
         },
-        onError: (err, variables, context) => {
+        onError: (_err, _variables, context) => {
             queryClient.setQueryData(['letters'], context?.previousLetters);
         }
     });
