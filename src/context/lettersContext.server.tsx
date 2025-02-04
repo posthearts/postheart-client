@@ -3,9 +3,6 @@ import {
     useState,
     useEffect,
     useCallback,
-    createContext,
-    useContext,
-    ReactNode,
     useMemo,
     useRef
 } from "react";
@@ -18,37 +15,64 @@ import { type LetterType, Letter } from "@/components/LetterView/letter";
 import { AddOnType } from "@/components/LetterView/addOnUtils";
 import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
 
+// Utility function to get the auth token
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
 // API functions
 async function fetchLetters(): Promise<LetterType[]> {
-    const response = await fetch(`${BASE_URL}`);
-    return response.json();
+    const response = await fetch(`${BASE_URL}/letters`, {
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+        }
+    });
+    if (!response.ok) {
+        console.error('Failed to fetch letters:', response.statusText);
+        throw new Error('Failed to fetch letters');
+    }
+    const data = await response.json();
+    console.log('Fetched letters:', data);
+    return data;
 }
 
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
-    const response = await fetch(`${BASE_URL}`, {
+    const response = await fetch(`${BASE_URL}/letters`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
         body: JSON.stringify(newLetter)
     });
     return response.json();
 }
 
 async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
-    await fetch(`${BASE_URL}/${id}`, {
+    await fetch(`${BASE_URL}/letters/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
         body: JSON.stringify(updatedData)
     });
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
-    await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' });
+    await fetch(`${BASE_URL}/letters/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+        }
+    });
 }
 
-function useLettersProvider() {
+export function useLettersProvider() {
     const queryClient = useQueryClient();
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
     const initialLoad = useRef(true);
+    const autoSaveInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch letters from server
     const { data: letters = [] } = useQuery<LetterType[]>({
@@ -170,6 +194,24 @@ function useLettersProvider() {
         });
     }, [currentLetterId, letters, updateLetterMutation]);
 
+    // Auto-save functionality
+    useEffect(() => {
+        if (currentLetterId) {
+            autoSaveInterval.current = setInterval(() => {
+                const currentLetter = letters.find(letter => letter.id === currentLetterId);
+                if (currentLetter) {
+                    handleUpdateLetter(currentLetter.id, currentLetter);
+                }
+            }, 5000); // Auto-save every 5 seconds
+        }
+
+        return () => {
+            if (autoSaveInterval.current) {
+                clearInterval(autoSaveInterval.current);
+            }
+        };
+    }, [currentLetterId, letters, handleUpdateLetter]);
+
     return {
         letters,
         createLetter: handleCreateLetter,
@@ -183,22 +225,3 @@ function useLettersProvider() {
     };
 }
 
-// Context setup
-const LettersContext = createContext<ReturnType<typeof useLettersProvider> | undefined>(undefined);
-
-export function LettersProvider({ children }: { children: ReactNode }) {
-    const lettersContextValue = useLettersProvider();
-    return (
-        <LettersContext.Provider value={lettersContextValue}>
-            {children}
-        </LettersContext.Provider>
-    );
-}
-
-export function useLetters() {
-    const context = useContext(LettersContext);
-    if (!context) {
-        throw new Error("useLetters must be used within a LettersProvider");
-    }
-    return context;
-}
