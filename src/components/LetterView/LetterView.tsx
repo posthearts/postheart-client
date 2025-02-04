@@ -32,7 +32,7 @@ export default function LetterView() {
     const paperWidth = useMemo(() => {
         const paper = select('#posthearts-paper');
         if (paper) {
-            return paper.clientWidth;
+            return paper.getBoundingClientRect().width;
         } else {
             return 0;
         }
@@ -50,7 +50,7 @@ export default function LetterView() {
                 container?.classList.remove('stagger');
             }, 500);
         });
-    });
+    }, [currentLetter?.addOns]);
 
     return (
         <div id="letter-view" className="w-full h-full rounded-3xl" style={{ backgroundColor: currentLetter?.frameColor.colorString, transition: backgroundColorTransition, overflow: 'clip' }}>
