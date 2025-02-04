@@ -7,7 +7,6 @@ import {
     useRef
 } from "react";
 import {
-    useQuery,
     useMutation,
     useQueryClient,
 } from '@tanstack/react-query';
@@ -21,26 +20,6 @@ function getAuthToken() {
 }
 
 // API functions
-async function fetchLetters(): Promise<LetterType[]> {
-    try {
-        const response = await fetch(`${BASE_URL}/letters`, {
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
-            }
-        });
-        if (!response.ok) {
-            console.error('Failed to fetch letters:', response.statusText);
-            throw new Error('Failed to fetch letters');
-        }
-        const data = await response.json();
-        console.log('Fetched letters:', data);
-        return data;
-    } catch (error) {
-        console.error('Error fetching letters:', error);
-        throw error;
-    }
-}
-
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
     try {
         const response = await fetch(`${BASE_URL}/letters`, {
@@ -106,25 +85,17 @@ async function deleteServerLetter(id: string): Promise<void> {
 
 export function useLettersProvider() {
     const queryClient = useQueryClient();
+    const [letters, setLetters] = useState<LetterType[]>(getLettersFromStorage());
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
-    const initialLoad = useRef(true);
     const autoSaveInterval = useRef<NodeJS.Timeout | null>(null);
-
-    // Fetch letters from server
-    const { data: letters = [] } = useQuery<LetterType[]>({
-        queryKey: ['letters'],
-        queryFn: fetchLetters,
-        initialData: getLettersFromStorage() // Fallback to local storage
-    });
 
     // Mutations
     const { mutate: createLetterMutation } = useMutation({
         mutationFn: createServerLetter,
         onSuccess: (serverLetter) => {
-            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
-                old ? [...old, serverLetter] : [serverLetter]
-            );
+            setLetters((prev) => [...prev, serverLetter]);
             saveLettersToStorage([...letters, serverLetter]);
+            setCurrentLetterId(serverLetter.id);
         },
         onError: (error) => {
             console.error('Error creating letter:', error);
@@ -157,9 +128,7 @@ export function useLettersProvider() {
     const { mutate: deleteLetterMutation } = useMutation({
         mutationFn: deleteServerLetter,
         onSuccess: (_, id) => {
-            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
-                old?.filter(letter => letter.id !== id)
-            );
+            setLetters((prev) => prev.filter(letter => letter.id !== id));
             saveLettersToStorage(letters.filter(letter => letter.id !== id));
         },
         onError: (error) => {
@@ -177,9 +146,7 @@ export function useLettersProvider() {
 
     // Initial load logic
     useEffect(() => {
-        if (!initialLoad.current || letters.length === 0) return;
-
-        if (letters.length === 0 && !currentLetterId) {
+        if (letters.length === 0) {
             handleCreateLetter();
         } else if (!currentLetterId && letters.length > 0) {
             const lastEditedLetter = letters.reduce((last, current) =>
@@ -189,15 +156,12 @@ export function useLettersProvider() {
             );
             setCurrentLetterId(lastEditedLetter.id);
         }
-
-        initialLoad.current = false;
     }, [letters, currentLetterId]);
 
     // Letter actions
     const handleCreateLetter = useCallback(() => {
         const newLetter = new Letter();
         createLetterMutation(newLetter);
-        setCurrentLetterId(newLetter.id);
     }, [createLetterMutation]);
 
     const handleUpdateLetter = useCallback(
