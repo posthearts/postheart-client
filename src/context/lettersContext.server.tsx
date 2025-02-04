@@ -3,102 +3,106 @@ import {
     useState,
     useEffect,
     useCallback,
+    createContext,
+    useContext,
+    ReactNode,
     useMemo,
     useRef
 } from "react";
 import {
+    useQuery,
     useMutation,
     useQueryClient,
+    QueryClient
 } from '@tanstack/react-query';
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { type LetterType, Letter } from "@/components/LetterView/letter";
 import { AddOnType } from "@/components/LetterView/addOnUtils";
-import { getLettersFromStorage, saveLettersToStorage, groupLettersByDate } from "./lettersUtils";
+import { groupLettersByDate } from "./lettersUtils";
 
-// Utility function to get the auth token
 function getAuthToken() {
     return localStorage.getItem('token');
 }
 
 // API functions
-async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
-    try {
-        const response = await fetch(`${BASE_URL}/letters`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
-            body: JSON.stringify(newLetter)
-        });
-        if (!response.ok) {
-            console.error('Failed to create letter:', response.statusText);
-            throw new Error('Failed to create letter');
+async function fetchLetters(): Promise<LetterType[]> {
+    const response = await fetch(`${BASE_URL}`, {
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
         }
-        const data = await response.json();
-        console.log('Created letter:', data);
-        return data;
-    } catch (error) {
-        console.error('Error creating letter:', error);
-        throw error;
-    }
+    });
+    return response.json();
+}
+
+async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
+    const response = await fetch(`${BASE_URL}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify(newLetter)
+    });
+    return response.json();
 }
 
 async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
-    try {
-        const response = await fetch(`${BASE_URL}/letters/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
-            body: JSON.stringify(updatedData)
-        });
-        if (!response.ok) {
-            console.error('Failed to update letter:', response.statusText);
-            throw new Error('Failed to update letter');
-        }
-        console.log('Updated letter:', id);
-    } catch (error) {
-        console.error('Error updating letter:', error);
-        throw error;
-    }
+    await fetch(`${BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify(updatedData)
+    });
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
-    try {
-        const response = await fetch(`${BASE_URL}/letters/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
-            }
-        });
-        if (!response.ok) {
-            console.error('Failed to delete letter:', response.statusText);
-            throw new Error('Failed to delete letter');
+    await fetch(`${BASE_URL}/${id}`, { 
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
         }
-        console.log('Deleted letter:', id);
-    } catch (error) {
-        console.error('Error deleting letter:', error);
-        throw error;
-    }
+    });
 }
 
-export function useLettersProvider() {
+// Query Client with Persistence
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            gcTime: 1000 * 60 * 60 * 24, // Garbage collect every 24 hours
+        },
+    },
+});
+
+const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+});
+
+persistQueryClient({
+    queryClient,
+    persister,
+});
+
+function useLettersProvider() {
     const queryClient = useQueryClient();
-    const [letters, setLetters] = useState<LetterType[]>(getLettersFromStorage());
     const [currentLetterId, setCurrentLetterId] = useState<string | null>(null);
-    const autoSaveInterval = useRef<NodeJS.Timeout | null>(null);
+    const initialLoad = useRef(true);
+
+    // Fetch letters from server with persistent caching
+    const { data: letters = [], isSuccess } = useQuery<LetterType[]>({
+        queryKey: ['letters'],
+        queryFn: fetchLetters,
+    });
 
     // Mutations
     const { mutate: createLetterMutation } = useMutation({
         mutationFn: createServerLetter,
         onSuccess: (serverLetter) => {
-            setLetters((prev) => [...prev, serverLetter]);
-            saveLettersToStorage([...letters, serverLetter]);
-            setCurrentLetterId(serverLetter.id);
-        },
-        onError: (error) => {
-            console.error('Error creating letter:', error);
+            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
+                old ? [...old, serverLetter] : [serverLetter]
+            );
         }
     });
 
@@ -119,23 +123,17 @@ export function useLettersProvider() {
 
             return { previousLetters };
         },
-        onError: (error, _variables, context) => {
-            console.error('Error updating letter:', error);
+        onError: (_err, _variables, context) => {
             queryClient.setQueryData(['letters'], context?.previousLetters);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['letters'] });
         }
     });
 
     const { mutate: deleteLetterMutation } = useMutation({
         mutationFn: deleteServerLetter,
         onSuccess: (_, id) => {
-            setLetters((prev) => prev.filter(letter => letter.id !== id));
-            saveLettersToStorage(letters.filter(letter => letter.id !== id));
-        },
-        onError: (error) => {
-            console.error('Error deleting letter:', error);
+            queryClient.setQueryData<LetterType[]>(['letters'], (old) =>
+                old?.filter(letter => letter.id !== id)
+            );
         }
     });
 
@@ -149,7 +147,8 @@ export function useLettersProvider() {
 
     // Initial load logic
     useEffect(() => {
-        if (letters.length === 0) {
+        if (!initialLoad.current || !isSuccess) return;
+        if (letters.length === 0 && !currentLetterId) {
             handleCreateLetter();
         } else if (!currentLetterId && letters.length > 0) {
             const lastEditedLetter = letters.reduce((last, current) =>
@@ -159,12 +158,14 @@ export function useLettersProvider() {
             );
             setCurrentLetterId(lastEditedLetter.id);
         }
-    }, [letters, currentLetterId]);
+        initialLoad.current = false;
+    }, [letters, currentLetterId, isSuccess]);
 
     // Letter actions
     const handleCreateLetter = useCallback(() => {
         const newLetter = new Letter();
         createLetterMutation(newLetter);
+        setCurrentLetterId(newLetter.id);
     }, [createLetterMutation]);
 
     const handleUpdateLetter = useCallback(
@@ -204,24 +205,6 @@ export function useLettersProvider() {
         });
     }, [currentLetterId, letters, updateLetterMutation]);
 
-    // Auto-save functionality
-    useEffect(() => {
-        if (currentLetterId) {
-            autoSaveInterval.current = setInterval(() => {
-                const currentLetter = letters.find(letter => letter.id === currentLetterId);
-                if (currentLetter) {
-                    handleUpdateLetter(currentLetter.id, currentLetter);
-                }
-            }, 5000); // Auto-save every 5 seconds
-        }
-
-        return () => {
-            if (autoSaveInterval.current) {
-                clearInterval(autoSaveInterval.current);
-            }
-        };
-    }, [currentLetterId, letters, handleUpdateLetter]);
-
     return {
         letters,
         createLetter: handleCreateLetter,
@@ -233,4 +216,24 @@ export function useLettersProvider() {
         updateAddOn: handleUpdateAddOn,
         deleteAddOn: handleDeleteAddOn
     };
+}
+
+// Context setup
+const LettersContext = createContext<ReturnType<typeof useLettersProvider> | undefined>(undefined);
+
+export function LettersProvider({ children }: { children: ReactNode }) {
+    const lettersContextValue = useLettersProvider();
+    return (
+        <LettersContext.Provider value={lettersContextValue}>
+            {children}
+        </LettersContext.Provider>
+    );
+}
+
+export function useLetters() {
+    const context = useContext(LettersContext);
+    if (!context) {
+        throw new Error("useLetters must be used within a LettersProvider");
+    }
+    return context;
 }

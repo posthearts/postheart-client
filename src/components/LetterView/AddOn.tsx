@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect } from "react";
 import useSticker, { StickerType } from "../AddOns/useSticker"
 import { EditableAddOnManager, type EditAddOnType, type SingleAddOn } from "./addOnUtils";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server";
 import useEmoji, { EmojiType } from "../AddOns/useEmoji";
 
 interface AddOnProps {
@@ -10,6 +10,7 @@ interface AddOnProps {
     style?: CSSProperties;
 }
 const AddOn = ({ addOn, className, style }: AddOnProps) => {
+    console.log('rerender');
     const { updateAddOn, deleteAddOn } = useLetters();
     const addOnId = `add-${addOn.id}`;
 

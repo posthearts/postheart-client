@@ -4,7 +4,7 @@ import AlignBottom from "@/assets/svg/align-bottom.svg?react";
 import AlignCenter from "@/assets/svg/align-center.svg?react";
 import { scaleAnimation, type ContentAlignmentType } from "../letter";
 import { ConfigurationProps } from "./Customization";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server";
 import { offset, useFloating } from "@floating-ui/react-dom";
 import { motion } from "motion/react";
 import { alignments } from "../letter";

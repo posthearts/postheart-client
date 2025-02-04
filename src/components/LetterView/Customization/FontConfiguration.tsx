@@ -6,7 +6,7 @@ import { scaleAnimation, fontFamilies, type FontFamily } from "../letter";
 import Check from "@/assets/svg/check.svg?react";
 import { useFloating, offset } from "@floating-ui/react-dom";
 import { MouseEventHandler, useEffect, useRef } from "react";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server";
 import { useOutsideClick } from "@/utils";
 
 const MotionButton = motion.create(Button);

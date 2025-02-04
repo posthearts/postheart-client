@@ -15,7 +15,7 @@ import CharacterCount from "@tiptap/extension-character-count";
 import Text from "@tiptap/extension-text";
 
 import useMeasure from "react-use-measure";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server.tsx";
 
 const MAX_LETTER_LENGTH = 1000;
 const extensions = [

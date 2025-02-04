@@ -4,7 +4,7 @@ import useMeasure from "react-use-measure";
 import Customization from "./Customization/Customization";
 import Collapse from "@/assets/svg/collapse.svg?react";
 import Button from "../UI/SiteButton";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server.tsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { select } from "@/utils";
 import AddOn from "./AddOn";

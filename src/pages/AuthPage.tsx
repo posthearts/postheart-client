@@ -27,7 +27,7 @@ export default function AuthPage() {
 
         if (token && name && profile_picture) {
             const tokenExpiry = new Date();
-            tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Set token expiry to 1 hour
+            // tokenExpiry.setHours(tokenExpiry.getHours() + 1);
             setUser({ token, name, profile_picture });
             localStorage.setItem('token', token);
             localStorage.setItem('name', name);

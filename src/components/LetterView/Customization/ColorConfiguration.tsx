@@ -5,7 +5,7 @@ import { scaleAnimation, backgroundColorTransition } from "../letter";
 import { useFloating, offset } from "@floating-ui/react-dom";
 import { type ConfigurationProps } from "./Customization";
 import { MouseEvent, MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server";
 import SmallCheckBox from "@/assets/svg/small-checkbox.svg?react";
 import CaretDown from "@/assets/svg/caret-down.svg?react";
 import { useOutsideClick } from "@/utils";

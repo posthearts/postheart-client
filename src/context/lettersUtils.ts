@@ -9,6 +9,7 @@ export function getLettersFromStorage(): LetterType[] {
 }
 
 export function saveLettersToStorage(letters: LetterType[]) {
+    console.log('stored')
     localStorage.setItem(STORAGE_KEY, JSON.stringify(letters));
 }
 

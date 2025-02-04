@@ -6,7 +6,7 @@ import { type StickerType, stickerTypes } from "@/components/AddOns/useSticker";
 import Checkbox from "@/assets/svg/checkbox.svg?react";
 import React, { useRef, useState } from "react";
 import useSticker from "@/components/AddOns/useSticker";
-import { useLetters } from "@/context/lettersContext";
+import { useLetters } from "@/context/lettersContext.server";
 import { SingleAddOn } from "../addOnUtils";
 import { Config, type OnActivate } from "./Customization";
 import { useOutsideClick } from "@/utils";
