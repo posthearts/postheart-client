@@ -47,18 +47,18 @@ export default function LetterInput() {
         content: currentLetter?.content || '',
         onUpdate: ({ editor }) => {
             if (currentLetter) {
-                updateLetter(currentLetter.id, { content: editor.getHTML(), title: truncateString(editor?.getText(),) });
+                updateLetter(currentLetter.id, { content: editor.getHTML(), title: truncateString(editor?.getText(), 20) });
             }
         },
     });
 
     useEffect(() => {
-        if (editor?.isEmpty && currentLetter) {
+        if (editor && currentLetter) {
             editor.commands.setContent(currentLetter.content);
         }
-    }, [currentLetter?.id])
+    }, [currentLetter?.id, editor]);
 
-    const toggleIsEpanded = () => {
+    const toggleIsExpanded = () => {
         setIsExpanded((oldValue) => !oldValue);
     };
 
@@ -98,7 +98,7 @@ export default function LetterInput() {
                 </div>
 
                 <SiteButton
-                    onClick={toggleIsEpanded}
+                    onClick={toggleIsExpanded}
                     className="w-8 h-8 rounded-full bg-backgrounds-on-canvas flex items-center justify-center"
                 >
                     {isExpanded ? <Collapse /> : <Expand />}

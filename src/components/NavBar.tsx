@@ -6,7 +6,6 @@ import SiteButton from "./UI/SiteButton";
 import { useCallback, useEffect, useRef, useState, useContext } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLetters } from "@/context/lettersContext";
-// import { useLetters } from "@/context/lettersContext.server";
 import { type GroupByDateType } from "@/context/lettersUtils";
 import { LetterType } from "./LetterView/letter";
 import { UserContext } from "@/context/UserContext";
