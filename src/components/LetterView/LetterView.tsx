@@ -21,18 +21,17 @@ export default function LetterView() {
     useEffect(() => {
         setPaperRotation((lastValue) => {
             return (lastValue + 1) % possibleRotations.length;
-        });
+        })
     }, [currentLetter?.frameColor.colorString]);
 
     function onClick() {
-        // Handle click event
     }
 
     const [ref, bounds] = useMeasure();
     const paperWidth = useMemo(() => {
         const paper = select('#posthearts-paper');
         if (paper) {
-            return paper.getBoundingClientRect().width;
+            return paper.clientWidth;
         } else {
             return 0;
         }
@@ -49,8 +48,8 @@ export default function LetterView() {
             setTimeout(() => {
                 container?.classList.remove('stagger');
             }, 500);
-        });
-    }, [currentLetter?.addOns]);
+        })
+    })
 
     return (
         <div id="letter-view" className="w-full h-full rounded-3xl" style={{ backgroundColor: currentLetter?.frameColor.colorString, transition: backgroundColorTransition, overflow: 'clip' }}>
