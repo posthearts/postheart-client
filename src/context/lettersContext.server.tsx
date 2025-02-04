@@ -22,50 +22,86 @@ function getAuthToken() {
 
 // API functions
 async function fetchLetters(): Promise<LetterType[]> {
-    const response = await fetch(`${BASE_URL}/letters`, {
-        headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
+    try {
+        const response = await fetch(`${BASE_URL}/letters`, {
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`
+            }
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch letters:', response.statusText);
+            throw new Error('Failed to fetch letters');
         }
-    });
-    if (!response.ok) {
-        console.error('Failed to fetch letters:', response.statusText);
-        throw new Error('Failed to fetch letters');
+        const data = await response.json();
+        console.log('Fetched letters:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching letters:', error);
+        throw error;
     }
-    const data = await response.json();
-    console.log('Fetched letters:', data);
-    return data;
 }
 
 async function createServerLetter(newLetter: LetterType): Promise<LetterType> {
-    const response = await fetch(`${BASE_URL}/letters`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(newLetter)
-    });
-    return response.json();
+    try {
+        const response = await fetch(`${BASE_URL}/letters`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify(newLetter)
+        });
+        if (!response.ok) {
+            console.error('Failed to create letter:', response.statusText);
+            throw new Error('Failed to create letter');
+        }
+        const data = await response.json();
+        console.log('Created letter:', data);
+        return data;
+    } catch (error) {
+        console.error('Error creating letter:', error);
+        throw error;
+    }
 }
 
 async function updateServerLetter(id: string, updatedData: Partial<LetterType>): Promise<void> {
-    await fetch(`${BASE_URL}/letters/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(updatedData)
-    });
+    try {
+        const response = await fetch(`${BASE_URL}/letters/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify(updatedData)
+        });
+        if (!response.ok) {
+            console.error('Failed to update letter:', response.statusText);
+            throw new Error('Failed to update letter');
+        }
+        console.log('Updated letter:', id);
+    } catch (error) {
+        console.error('Error updating letter:', error);
+        throw error;
+    }
 }
 
 async function deleteServerLetter(id: string): Promise<void> {
-    await fetch(`${BASE_URL}/letters/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
+    try {
+        const response = await fetch(`${BASE_URL}/letters/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`
+            }
+        });
+        if (!response.ok) {
+            console.error('Failed to delete letter:', response.statusText);
+            throw new Error('Failed to delete letter');
         }
-    });
+        console.log('Deleted letter:', id);
+    } catch (error) {
+        console.error('Error deleting letter:', error);
+        throw error;
+    }
 }
 
 export function useLettersProvider() {
@@ -89,6 +125,9 @@ export function useLettersProvider() {
                 old ? [...old, serverLetter] : [serverLetter]
             );
             saveLettersToStorage([...letters, serverLetter]);
+        },
+        onError: (error) => {
+            console.error('Error creating letter:', error);
         }
     });
 
@@ -109,7 +148,8 @@ export function useLettersProvider() {
 
             return { previousLetters };
         },
-        onError: (_err, _variables, context) => {
+        onError: (error, _variables, context) => {
+            console.error('Error updating letter:', error);
             queryClient.setQueryData(['letters'], context?.previousLetters);
         }
     });
@@ -121,6 +161,9 @@ export function useLettersProvider() {
                 old?.filter(letter => letter.id !== id)
             );
             saveLettersToStorage(letters.filter(letter => letter.id !== id));
+        },
+        onError: (error) => {
+            console.error('Error deleting letter:', error);
         }
     });
 
@@ -224,4 +267,3 @@ export function useLettersProvider() {
         deleteAddOn: handleDeleteAddOn
     };
 }
-
