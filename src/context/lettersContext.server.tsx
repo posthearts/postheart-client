@@ -122,6 +122,9 @@ export function useLettersProvider() {
         onError: (error, _variables, context) => {
             console.error('Error updating letter:', error);
             queryClient.setQueryData(['letters'], context?.previousLetters);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['letters'] });
         }
     });
 
